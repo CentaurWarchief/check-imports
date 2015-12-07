@@ -48,9 +48,22 @@ try {
       var root = path.dirname(file)
 
       parsed.program.body.filter(function(node) {
-        return node.type && node.type === 'ImportDeclaration'
+        return node.type && (
+          node.type === 'ImportDeclaration' ||
+          node.type === 'ExpressionStatement'
+        )
       }).map(function(node) {
-        return node.source.value
+        if (node.type === 'ImportDeclaration') {
+          return node.source.value
+        }
+
+        if (node.expression.callee.name === 'require') {
+          return node.expression.arguments[0].value
+        }
+
+        return null
+      }).filter(function(value) {
+        return value !== null
       }).forEach(function(value) {
         var abs = value
 
@@ -58,8 +71,12 @@ try {
           abs = path.resolve(root, value)
         }
 
-        if (! fs.existsSync(abs + '.js')) {
-          console.info('Not found: %s', value)
+        try {
+          require(abs)
+        } catch (e) {
+          if (e.code === 'MODULE_NOT_FOUND') {
+            console.info('Not found: %s', value)
+          }
         }
       })
     })
