@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "babylon": "^6.3.15",
+    "minimist": "^1.2.0"
+  }
+}
