@@ -37,7 +37,8 @@ try {
           'exportExtensions',
           'exponentiationOperator',
           'asyncGenerators',
-          'functionSent'
+          'functionSent',
+          'functionBind'
         ]
       })
 
