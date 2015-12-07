@@ -49,20 +49,29 @@ try {
       var root = path.dirname(file)
 
       parsed.program.body.filter(function(node) {
-        return node.type && (
-          node.type === 'ImportDeclaration' ||
-          node.type === 'ExpressionStatement'
-        )
+        if (! node.type) {
+          return false
+        }
+
+        if (node.type === 'ImportDeclaration') {
+          return true
+        }
+
+        if (node.type === 'ExpressionStatement') {
+          return (
+            node.expression.callee.name === 'require' &&
+            node.expression.arguments.length > 0 &&
+            typeof node.expression.arguments[0].value === 'string'
+          )
+        }
+
+        return false
       }).map(function(node) {
         if (node.type === 'ImportDeclaration') {
           return node.source.value
         }
 
-        if (node.expression.callee.name === 'require') {
-          return node.expression.arguments[0].value
-        }
-
-        return null
+        return node.expression.arguments[0].value
       }).filter(function(value) {
         return value !== null
       }).forEach(function(value) {
@@ -72,13 +81,17 @@ try {
           abs = path.resolve(root, value)
         }
 
-        try {
-          require(abs)
-        } catch (e) {
-          if (e.code === 'MODULE_NOT_FOUND') {
-            console.info('Not found: %s', value)
-          }
+        if (! fs.existsSync(abs)) {
+          console.info('Not found: %s', value)
         }
+
+        // try {
+        //   require(abs)
+        // } catch (e) {
+        //   if (e.code === 'MODULE_NOT_FOUND') {
+        //     console.info('Not found: %s', value)
+        //   }
+        // }
       })
     })
   })
